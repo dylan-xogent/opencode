@@ -131,6 +131,7 @@ Each stage receives only what it needs — not the full accumulated chain. This 
 | tests | original request only |
 | deps | original request only |
 | perf | original request only |
+| rmslop | list of files modified by the preceding build agent |
 | gate | builder's change summary (files changed + what changed) |
 | design-review | list of files modified + original request |
 | reviewer | architect spec (if available) + builder change summary + original request + gate verdict |
@@ -149,6 +150,12 @@ Use this prompt structure for each stage:
 ```
 
 The gate and security stages intentionally do not receive architecture/planning context — gate only cares about whether checks pass, security only cares about what the code actually does.
+
+## Slop Removal
+
+After every builder, builder-fast, ui, mockup, or a11y run — before invoking gate — invoke rmslop to strip AI-generated patterns (over-defensive error handling, unnecessary comments, `any` casts, inconsistent style). Pass rmslop the list of files modified by the preceding build agent.
+
+Skip rmslop for: tests, deps, perf, docs (these agents either don't write application code or produce intentionally structured output).
 
 ## Gate Protocol
 
