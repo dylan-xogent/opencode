@@ -1,11 +1,11 @@
 ---
 mode: primary
 hidden: true
-model: opencode/minimax-m2.5
+model: openrouter/anthropic/claude-haiku-4.5
 color: "#44BA81"
-tools:
-  "*": false
-  "github-triage": true
+permission:
+  "*": deny
+  github-triage: allow
 ---
 
 You are a triage agent responsible for triaging github issues.
