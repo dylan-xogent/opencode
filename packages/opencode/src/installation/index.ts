@@ -252,8 +252,9 @@ export namespace Installation {
             return data.version
           }
 
+          const ghRepo = Flag.AWARENESS_GITHUB_REPO || "dylan-xogent/opencode"
           const response = yield* httpOk.execute(
-            HttpClientRequest.get("https://api.github.com/repos/anomalyco/opencode/releases/latest").pipe(
+            HttpClientRequest.get(`https://api.github.com/repos/${ghRepo}/releases/latest`).pipe(
               HttpClientRequest.acceptJson,
             ),
           )
