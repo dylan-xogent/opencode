@@ -1221,6 +1221,8 @@ export namespace Config {
             mergeDeep(yield* loadFile(path.join(Global.Path.config, "config.json"))),
             mergeDeep(yield* loadFile(path.join(Global.Path.config, "opencode.json"))),
             mergeDeep(yield* loadFile(path.join(Global.Path.config, "opencode.jsonc"))),
+            mergeDeep(yield* loadFile(path.join(Global.Path.config, "awareness.json"))),
+            mergeDeep(yield* loadFile(path.join(Global.Path.config, "awareness.jsonc"))),
           )
 
           const legacy = path.join(Global.Path.config, "config")
