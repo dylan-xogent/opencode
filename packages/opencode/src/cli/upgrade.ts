@@ -17,6 +17,12 @@ export async function upgrade() {
   if (Installation.VERSION === latest) return
   if (config.autoupdate === false || Flag.OPENCODE_DISABLE_AUTOUPDATE) return
 
+  // Preview/dev builds always notify — they can't auto-install anyway
+  if (Installation.isPreview()) {
+    await Bus.publish(Installation.Event.UpdateAvailable, { version: latest })
+    return
+  }
+
   const kind = Installation.getReleaseType(Installation.VERSION, latest)
 
   if (config.autoupdate === "notify" || kind !== "patch") {
