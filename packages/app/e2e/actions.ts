@@ -1,4 +1,4 @@
-import { base64Decode, base64Encode } from "@opencode-ai/util/encode"
+import { base64Decode, base64Encode } from "@awareness/util/encode"
 import { expect, type Locator, type Page } from "@playwright/test"
 import fs from "node:fs/promises"
 import os from "node:os"
@@ -318,7 +318,7 @@ export async function createTestProject(input?: { serverUrl?: string }) {
   await fs.writeFile(path.join(root, "README.md"), `# e2e\n\n${id}\n`)
 
   execSync("git init", { cwd: root, stdio: "ignore" })
-  await fs.writeFile(path.join(root, ".git", "opencode"), id)
+  await fs.writeFile(path.join(root, ".git", "awareness"), id)
   execSync("git config core.fsmonitor false", { cwd: root, stdio: "ignore" })
   execSync("git add -A", { cwd: root, stdio: "ignore" })
   execSync('git -c user.name="e2e" -c user.email="e2e@example.com" commit -m "init" --allow-empty', {

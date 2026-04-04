@@ -72,11 +72,11 @@ type AssistantFixture = {
 export const settingsKey = "settings.v3"
 
 const seedModel = (() => {
-  const [providerID = "opencode", modelID = "big-pickle"] = (
-    process.env.OPENCODE_E2E_MODEL ?? "opencode/big-pickle"
+  const [providerID = "awareness", modelID = "big-pickle"] = (
+    process.env.OPENCODE_E2E_MODEL ?? "awareness/big-pickle"
   ).split("/")
   return {
-    providerID: providerID || "opencode",
+    providerID: providerID || "awareness",
     modelID: modelID || "big-pickle",
   }
 })()

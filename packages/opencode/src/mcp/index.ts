@@ -11,7 +11,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import { Config } from "../config/config"
 import { Log } from "../util/log"
-import { NamedError } from "@opencode-ai/util/error"
+import { NamedError } from "@awareness/util/error"
 import z from "zod/v4"
 import { Instance } from "../project/instance"
 import { Installation } from "../installation"
@@ -260,7 +260,7 @@ export namespace MCP {
           (t) =>
             Effect.tryPromise({
               try: () => {
-                const client = new Client({ name: "opencode", version: Installation.VERSION })
+                const client = new Client({ name: "awareness", version: Installation.VERSION })
                 return withTimeout(client.connect(t), timeout).then(() => client)
               },
               catch: (e) => (e instanceof Error ? e : new Error(String(e))),
@@ -387,7 +387,7 @@ export namespace MCP {
           cwd,
           env: {
             ...process.env,
-            ...(cmd === "opencode" ? { BUN_BE_BUN: "1" } : {}),
+            ...(cmd === "awareness" || cmd === "opencode" ? { BUN_BE_BUN: "1" } : {}),
             ...mcp.environment,
           },
         })
@@ -743,7 +743,7 @@ export namespace MCP {
 
         return yield* Effect.tryPromise({
           try: () => {
-            const client = new Client({ name: "opencode", version: Installation.VERSION })
+            const client = new Client({ name: "awareness", version: Installation.VERSION })
             return client.connect(transport).then(() => ({ authorizationUrl: "", oauthState }))
           },
           catch: (error) => error,

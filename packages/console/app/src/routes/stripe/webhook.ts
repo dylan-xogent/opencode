@@ -1,13 +1,13 @@
-import { Billing } from "@opencode-ai/console-core/billing.js"
+import { Billing } from "@awareness/console-core/billing.js"
 import type { APIEvent } from "@solidjs/start/server"
-import { and, Database, eq, sql } from "@opencode-ai/console-core/drizzle/index.js"
-import { BillingTable, LiteTable, PaymentTable } from "@opencode-ai/console-core/schema/billing.sql.js"
-import { Identifier } from "@opencode-ai/console-core/identifier.js"
-import { centsToMicroCents } from "@opencode-ai/console-core/util/price.js"
-import { Actor } from "@opencode-ai/console-core/actor.js"
-import { Resource } from "@opencode-ai/console-resource"
-import { LiteData } from "@opencode-ai/console-core/lite.js"
-import { BlackData } from "@opencode-ai/console-core/black.js"
+import { and, Database, eq, sql } from "@awareness/console-core/drizzle/index.js"
+import { BillingTable, LiteTable, PaymentTable } from "@awareness/console-core/schema/billing.sql.js"
+import { Identifier } from "@awareness/console-core/identifier.js"
+import { centsToMicroCents } from "@awareness/console-core/util/price.js"
+import { Actor } from "@awareness/console-core/actor.js"
+import { Resource } from "@awareness/console-resource"
+import { LiteData } from "@awareness/console-core/lite.js"
+import { BlackData } from "@awareness/console-core/black.js"
 
 export async function POST(input: APIEvent) {
   const body = await Billing.stripe().webhooks.constructEventAsync(

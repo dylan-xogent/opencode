@@ -8,7 +8,7 @@ import { Log } from "../util/log"
 import { Npm } from "../npm"
 import { Hash } from "../util/hash"
 import { Plugin } from "../plugin"
-import { NamedError } from "@opencode-ai/util/error"
+import { NamedError } from "@awareness/util/error"
 import { type LanguageModelV3 } from "@ai-sdk/provider"
 import { ModelsDev } from "./models"
 import { Auth } from "../auth"
@@ -189,7 +189,7 @@ export namespace Provider {
         const ok =
           hasKey ||
           Boolean(yield* dep.auth(input.id)) ||
-          Boolean((yield* dep.config()).provider?.["opencode"]?.options?.apiKey)
+          Boolean((yield* dep.config()).provider?.["awareness"]?.options?.apiKey)
 
         if (!ok) {
           for (const [key, value] of Object.entries(input.models)) {
@@ -421,8 +421,8 @@ export namespace Provider {
           autoload: false,
           options: {
             headers: {
-              "HTTP-Referer": "https://opencode.ai/",
-              "X-Title": "opencode",
+              "HTTP-Referer": "https://awareness.dev/",
+              "X-Title": "awareness",
             },
           },
         }),
@@ -431,8 +431,8 @@ export namespace Provider {
           autoload: false,
           options: {
             headers: {
-              "http-referer": "https://opencode.ai/",
-              "x-title": "opencode",
+              "http-referer": "https://awareness.dev/",
+              "x-title": "awareness",
             },
           },
         }),
@@ -530,8 +530,8 @@ export namespace Provider {
           autoload: false,
           options: {
             headers: {
-              "HTTP-Referer": "https://opencode.ai/",
-              "X-Title": "opencode",
+              "HTTP-Referer": "https://awareness.dev/",
+              "X-Title": "awareness",
             },
           },
         }),
@@ -768,7 +768,7 @@ export namespace Provider {
           autoload: false,
           options: {
             headers: {
-              "X-Cerebras-3rd-Party-Integration": "opencode",
+              "X-Cerebras-3rd-Party-Integration": "awareness",
             },
           },
         }),
@@ -777,8 +777,8 @@ export namespace Provider {
           autoload: false,
           options: {
             headers: {
-              "HTTP-Referer": "https://opencode.ai/",
-              "X-Title": "opencode",
+              "HTTP-Referer": "https://awareness.dev/",
+              "X-Title": "awareness",
             },
           },
         }),
@@ -1534,7 +1534,7 @@ export namespace Provider {
           "gemini-2.5-flash",
           "gpt-5-nano",
         ]
-        if (providerID.startsWith("opencode")) {
+        if (providerID.startsWith("awareness")) {
           priority = ["gpt-5-nano"]
         }
         if (providerID.startsWith("github-copilot")) {

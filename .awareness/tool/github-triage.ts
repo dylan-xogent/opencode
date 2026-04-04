@@ -1,5 +1,5 @@
 /// <reference path="../env.d.ts" />
-import { tool } from "@opencode-ai/plugin"
+import { tool } from "@awareness/plugin"
 
 // Update OWNER/REPO to match this fork's repository
 const OWNER = "dylan-xogent"

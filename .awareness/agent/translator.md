@@ -636,8 +636,8 @@ XDG_CONFIG_HOME
 ```text
 ../../../config.mjs
 @astrojs/starlight/components
-@opencode-ai/plugin
-@opencode-ai/sdk
+@awareness/plugin
+@awareness/sdk
 path
 shescape
 zod
@@ -816,11 +816,11 @@ http://localhost:4096
 http://localhost:4096/doc
 https://app.example.com
 https://AZURE_COGNITIVE_SERVICES_RESOURCE_NAME.cognitiveservices.azure.com/
-https://opencode.ai/zen/v1/chat/completions
-https://opencode.ai/zen/v1/messages
-https://opencode.ai/zen/v1/models/gemini-3-flash
-https://opencode.ai/zen/v1/models/gemini-3-pro
-https://opencode.ai/zen/v1/responses
+https://awareness.dev/zen/v1/chat/completions
+https://awareness.dev/zen/v1/messages
+https://awareness.dev/zen/v1/models/gemini-3-flash
+https://awareness.dev/zen/v1/models/gemini-3-pro
+https://awareness.dev/zen/v1/responses
 https://RESOURCE_NAME.openai.azure.com/
 laravel/pint
 log/
@@ -828,7 +828,7 @@ model: "anthropic/claude-sonnet-4-5"
 modes/
 node_modules/
 openai/gpt-4.1
-opencode.ai/config.json
+awareness.dev/config.json
 opencode/<model-id>
 opencode/gpt-5.1-codex
 opencode/gpt-5.2-codex

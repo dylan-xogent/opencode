@@ -8,7 +8,7 @@ import { upgrade } from "@/cli/upgrade"
 import { Config } from "@/config/config"
 import { Bus } from "@/bus"
 import { GlobalBus } from "@/bus/global"
-import type { Event } from "@opencode-ai/sdk/v2"
+import type { Event } from "@awareness/sdk/v2"
 import { Flag } from "@/flag/flag"
 import { setTimeout as sleep } from "node:timers/promises"
 import { writeHeapSnapshot } from "node:v8"
@@ -170,6 +170,6 @@ Rpc.listen(rpc)
 function getAuthorizationHeader(): string | undefined {
   const password = Flag.OPENCODE_SERVER_PASSWORD
   if (!password) return undefined
-  const username = Flag.OPENCODE_SERVER_USERNAME ?? "opencode"
+  const username = Flag.OPENCODE_SERVER_USERNAME ?? "awareness"
   return `Basic ${btoa(`${username}:${password}`)}`
 }

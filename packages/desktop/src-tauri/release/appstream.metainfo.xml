@@ -23,12 +23,12 @@
   <content_rating type="oars-1.1" />
 
   <url type="bugtracker">https://github.com/anomalyco/opencode/issues</url>
-  <url type="homepage">https://opencode.ai</url>
+  <url type="homepage">https://awareness.dev</url>
   <url type="vcs-browser">https://github.com/anomalyco/opencode</url>
 
   <screenshots>
     <screenshot type="default">
-      <image>https://opencode.ai/docs/_astro/screenshot.Bs5D4atL_ZvsvFu.webp</image>
+      <image>https://awareness.dev/docs/_astro/screenshot.Bs5D4atL_ZvsvFu.webp</image>
     </screenshot>
   </screenshots>
 

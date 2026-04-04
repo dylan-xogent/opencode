@@ -2,7 +2,7 @@ import path from "path"
 import os from "os"
 import z from "zod"
 import { type ParseError as JsoncParseError, parse as parseJsonc, printParseErrorCode } from "jsonc-parser"
-import { NamedError } from "@opencode-ai/util/error"
+import { NamedError } from "@awareness/util/error"
 import { Filesystem } from "@/util/filesystem"
 import { Flag } from "@/flag/flag"
 import { Global } from "@/global"
@@ -18,7 +18,7 @@ export namespace ConfigPaths {
       ...(!Flag.OPENCODE_DISABLE_PROJECT_CONFIG
         ? await Array.fromAsync(
             Filesystem.up({
-              targets: [".opencode"],
+              targets: [".awareness", ".opencode"],
               start: directory,
               stop: worktree,
             }),
@@ -26,7 +26,7 @@ export namespace ConfigPaths {
         : []),
       ...(await Array.fromAsync(
         Filesystem.up({
-          targets: [".opencode"],
+          targets: [".awareness", ".opencode"],
           start: Global.Path.home,
           stop: Global.Path.home,
         }),

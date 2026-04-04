@@ -1,5 +1,5 @@
 import { defineConfig } from "electron-vite"
-import appPlugin from "@opencode-ai/app/vite"
+import appPlugin from "@awareness/app/vite"
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL

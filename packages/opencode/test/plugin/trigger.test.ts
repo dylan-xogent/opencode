@@ -30,7 +30,7 @@ async function project(source: string) {
         path.join(dir, "opencode.json"),
         JSON.stringify(
           {
-            $schema: "https://opencode.ai/config.json",
+            $schema: "https://awareness.dev/config.json",
             plugin: [pathToFileURL(file).href],
           },
           null,

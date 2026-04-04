@@ -8,7 +8,7 @@ import type {
   TuiPluginMeta,
   TuiPluginModule,
   TuiSlotPlugin,
-} from "@opencode-ai/plugin/tui"
+} from "@awareness/plugin/tui"
 import { createSignal, onCleanup } from "solid-js"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"

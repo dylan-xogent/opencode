@@ -1,13 +1,13 @@
-import type { Message, Session, TextPart, UserMessage } from "@opencode-ai/sdk/v2/client"
-import { Avatar } from "@opencode-ai/ui/avatar"
-import { HoverCard } from "@opencode-ai/ui/hover-card"
-import { Icon } from "@opencode-ai/ui/icon"
-import { IconButton } from "@opencode-ai/ui/icon-button"
-import { MessageNav } from "@opencode-ai/ui/message-nav"
-import { Spinner } from "@opencode-ai/ui/spinner"
-import { Tooltip } from "@opencode-ai/ui/tooltip"
-import { base64Encode } from "@opencode-ai/util/encode"
-import { getFilename } from "@opencode-ai/util/path"
+import type { Message, Session, TextPart, UserMessage } from "@awareness/sdk/v2/client"
+import { Avatar } from "@awareness/ui/avatar"
+import { HoverCard } from "@awareness/ui/hover-card"
+import { Icon } from "@awareness/ui/icon"
+import { IconButton } from "@awareness/ui/icon-button"
+import { MessageNav } from "@awareness/ui/message-nav"
+import { Spinner } from "@awareness/ui/spinner"
+import { Tooltip } from "@awareness/ui/tooltip"
+import { base64Encode } from "@awareness/util/encode"
+import { getFilename } from "@awareness/util/path"
 import { A, useNavigate, useParams } from "@solidjs/router"
 import { type Accessor, createMemo, For, type JSX, Match, onCleanup, Show, Switch } from "solid-js"
 import { useGlobalSync } from "@/context/global-sync"
@@ -45,7 +45,7 @@ export const ProjectIcon = (props: { project: LocalProject; class?: string; noti
         <Avatar
           fallback={name()}
           src={
-            props.project.id === OPENCODE_PROJECT_ID ? "https://opencode.ai/favicon.svg" : props.project.icon?.override
+            props.project.id === OPENCODE_PROJECT_ID ? "https://awareness.dev/favicon.svg" : props.project.icon?.override
           }
           {...getAvatarColors(props.project.icon?.color)}
           class="size-full rounded"

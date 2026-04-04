@@ -1,13 +1,13 @@
 import { Component, Show, createMemo, createResource, onMount, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Button } from "@opencode-ai/ui/button"
-import { Icon } from "@opencode-ai/ui/icon"
-import { Select } from "@opencode-ai/ui/select"
-import { Switch } from "@opencode-ai/ui/switch"
-import { TextField } from "@opencode-ai/ui/text-field"
-import { Tooltip } from "@opencode-ai/ui/tooltip"
-import { useTheme, type ColorScheme } from "@opencode-ai/ui/theme/context"
-import { showToast } from "@opencode-ai/ui/toast"
+import { Button } from "@awareness/ui/button"
+import { Icon } from "@awareness/ui/icon"
+import { Select } from "@awareness/ui/select"
+import { Switch } from "@awareness/ui/switch"
+import { TextField } from "@awareness/ui/text-field"
+import { Tooltip } from "@awareness/ui/tooltip"
+import { useTheme, type ColorScheme } from "@awareness/ui/theme/context"
+import { showToast } from "@awareness/ui/toast"
 import { useLanguage } from "@/context/language"
 import { usePlatform } from "@/context/platform"
 import {
@@ -273,7 +273,7 @@ export const SettingsGeneral: Component = () => {
           description={
             <>
               {language.t("settings.general.row.theme.description")}{" "}
-              <Link href="https://opencode.ai/docs/themes/">{language.t("common.learnMore")}</Link>
+              <Link href="https://awareness.dev/docs/themes/">{language.t("common.learnMore")}</Link>
             </>
           }
         >

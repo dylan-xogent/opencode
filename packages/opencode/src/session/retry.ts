@@ -1,4 +1,4 @@
-import type { NamedError } from "@opencode-ai/util/error"
+import type { NamedError } from "@awareness/util/error"
 import { Cause, Clock, Duration, Effect, Schedule } from "effect"
 import { MessageV2 } from "./message-v2"
 import { iife } from "@/util/iife"
@@ -54,7 +54,7 @@ export namespace SessionRetry {
     if (MessageV2.APIError.isInstance(error)) {
       if (!error.data.isRetryable) return undefined
       if (error.data.responseBody?.includes("FreeUsageLimitError"))
-        return `Free usage exceeded, subscribe to Go https://opencode.ai/go`
+        return `Free usage exceeded, subscribe to Go https://awareness.dev/go`
       return error.data.message.includes("Overloaded") ? "Provider is overloaded" : error.data.message
     }
 

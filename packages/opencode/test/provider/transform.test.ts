@@ -1406,10 +1406,10 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
   test("preserves metadata using providerID key when store is false", () => {
     const opencodeModel = {
       ...openaiModel,
-      providerID: "opencode",
+      providerID: "awareness",
       api: {
         id: "opencode-test",
-        url: "https://api.opencode.ai",
+        url: "https://api.awareness.dev",
         npm: "@ai-sdk/openai-compatible",
       },
     }
@@ -1440,10 +1440,10 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
   test("preserves itemId across all providerOptions keys", () => {
     const opencodeModel = {
       ...openaiModel,
-      providerID: "opencode",
+      providerID: "awareness",
       api: {
         id: "opencode-test",
-        url: "https://api.opencode.ai",
+        url: "https://api.awareness.dev",
         npm: "@ai-sdk/openai-compatible",
       },
     }

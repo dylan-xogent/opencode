@@ -46,7 +46,7 @@ export namespace Server {
         if (c.req.method === "OPTIONS") return next()
         const password = Flag.OPENCODE_SERVER_PASSWORD
         if (!password) return next()
-        const username = Flag.OPENCODE_SERVER_USERNAME ?? "opencode"
+        const username = Flag.OPENCODE_SERVER_USERNAME ?? "awareness"
         return basicAuth({ username, password })(c, next)
       })
       .use(async (c, next) => {
@@ -81,7 +81,7 @@ export namespace Server {
             )
               return input
 
-            // *.opencode.ai (https only, adjust if needed)
+            // *.awareness.dev (https only, adjust if needed)
             if (/^https:\/\/([a-z0-9-]+\.)*opencode\.ai$/.test(input)) {
               return input
             }
@@ -165,7 +165,7 @@ export namespace Server {
         openAPIRouteHandler(app, {
           documentation: {
             info: {
-              title: "opencode",
+              title: "awareness",
               version: "0.0.3",
               description: "opencode api",
             },
@@ -251,7 +251,7 @@ export namespace Server {
     const result = await generateSpecs(app, {
       documentation: {
         info: {
-          title: "opencode",
+          title: "awareness",
           version: "1.0.0",
           description: "opencode api",
         },

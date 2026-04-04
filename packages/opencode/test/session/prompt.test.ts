@@ -1,6 +1,6 @@
 import path from "path"
 import { describe, expect, test } from "bun:test"
-import { NamedError } from "@opencode-ai/util/error"
+import { NamedError } from "@awareness/util/error"
 import { fileURLToPath } from "url"
 import { Instance } from "../../src/project/instance"
 import { ModelID, ProviderID } from "../../src/provider/schema"
@@ -251,7 +251,7 @@ describe("session.prompt regression", () => {
           await Bun.write(
             path.join(dir, "opencode.json"),
             JSON.stringify({
-              $schema: "https://opencode.ai/config.json",
+              $schema: "https://awareness.dev/config.json",
               enabled_providers: ["alibaba"],
               provider: {
                 alibaba: {
@@ -320,7 +320,7 @@ describe("session.prompt regression", () => {
           await Bun.write(
             path.join(dir, "opencode.json"),
             JSON.stringify({
-              $schema: "https://opencode.ai/config.json",
+              $schema: "https://awareness.dev/config.json",
               enabled_providers: ["alibaba"],
               provider: {
                 alibaba: {
@@ -405,7 +405,7 @@ describe("session.prompt agent variant", () => {
           const other = await SessionPrompt.prompt({
             sessionID: session.id,
             agent: "build",
-            model: { providerID: ProviderID.make("opencode"), modelID: ModelID.make("kimi-k2.5-free") },
+            model: { providerID: ProviderID.make("awareness"), modelID: ModelID.make("kimi-k2.5-free") },
             noReply: true,
             parts: [{ type: "text", text: "hello" }],
           })

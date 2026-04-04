@@ -12,17 +12,17 @@ import contextMenu from "electron-context-menu"
 contextMenu({ showSaveImageAs: true, showLookUpSelection: false, showSearchWithGoogle: false })
 
 const APP_NAMES: Record<string, string> = {
-  dev: "OpenCode Dev",
-  beta: "OpenCode Beta",
-  prod: "OpenCode",
+  dev: "Awareness Dev",
+  beta: "Awareness Beta",
+  prod: "Awareness",
 }
 const APP_IDS: Record<string, string> = {
-  dev: "ai.opencode.desktop.dev",
-  beta: "ai.opencode.desktop.beta",
-  prod: "ai.opencode.desktop",
+  dev: "dev.awareness.desktop.dev",
+  beta: "dev.awareness.desktop.beta",
+  prod: "dev.awareness.desktop",
 }
-app.setName(app.isPackaged ? APP_NAMES[CHANNEL] : "OpenCode Dev")
-app.setPath("userData", join(app.getPath("appData"), app.isPackaged ? APP_IDS[CHANNEL] : "ai.opencode.desktop.dev"))
+app.setName(app.isPackaged ? APP_NAMES[CHANNEL] : "Awareness Dev")
+app.setPath("userData", join(app.getPath("appData"), app.isPackaged ? APP_IDS[CHANNEL] : "dev.awareness.desktop.dev"))
 const { autoUpdater } = pkg
 
 import type { InitStep, ServerReadyData, SqliteMigrationProgress, WslConfig } from "../preload/types"
@@ -97,7 +97,7 @@ function setupApp() {
 
   void app.whenReady().then(async () => {
     // migrate()
-    app.setAsDefaultProtocolClient("opencode")
+    app.setAsDefaultProtocolClient("awareness")
     setDockIcon()
     setupAutoUpdater()
     syncCli()
@@ -138,7 +138,7 @@ async function initialize() {
   sidecar = child
   serverReady.resolve({
     url,
-    username: "opencode",
+    username: "awareness",
     password,
   })
 
@@ -305,7 +305,7 @@ async function getSidecarPort() {
 function sqliteFileExists() {
   const xdg = process.env.XDG_DATA_HOME
   const base = xdg && xdg.length > 0 ? xdg : join(homedir(), ".local", "share")
-  return existsSync(join(base, "opencode", "opencode.db"))
+  return existsSync(join(base, "awareness", "awareness.db"))
 }
 
 function setupAutoUpdater() {

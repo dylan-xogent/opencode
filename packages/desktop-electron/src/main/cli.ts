@@ -12,8 +12,8 @@ import { WSL_ENABLED_KEY } from "./constants"
 import { getUserShell, loadShellEnv, mergeShellEnv } from "./shell-env"
 import { store } from "./store"
 
-const CLI_INSTALL_DIR = ".opencode/bin"
-const CLI_BINARY_NAME = "opencode"
+const CLI_INSTALL_DIR = ".awareness/bin"
+const CLI_BINARY_NAME = "awareness"
 
 export type ServerConfig = {
   hostname?: string
@@ -124,7 +124,7 @@ export function syncCli() {
 export function serve(hostname: string, port: number, password: string) {
   const args = `--print-logs --log-level WARN serve --hostname ${hostname} --port ${port}`
   const env = {
-    OPENCODE_SERVER_USERNAME: "opencode",
+    OPENCODE_SERVER_USERNAME: "awareness",
     OPENCODE_SERVER_PASSWORD: password,
   }
 
@@ -221,7 +221,7 @@ function buildCommand(args: string, env: Record<string, string>, shell: string |
       "set -e",
       'BIN="$HOME/.opencode/bin/opencode"',
       'if [ ! -x "$BIN" ]; then',
-      `  curl -fsSL https://opencode.ai/install | bash -s -- --version ${shellEscape(version)} --no-modify-path`,
+      `  curl -fsSL https://awareness.dev/install | bash -s -- --version ${shellEscape(version)} --no-modify-path`,
       "fi",
       `${envPrefix(env)} exec "$BIN" ${args}`,
     ].join("\n")

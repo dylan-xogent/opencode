@@ -8,7 +8,7 @@ import { ModelsDev } from "../provider/models"
 import { mergeDeep, pipe, unique } from "remeda"
 import { Global } from "../global"
 import fsNode from "fs/promises"
-import { NamedError } from "@opencode-ai/util/error"
+import { NamedError } from "@awareness/util/error"
 import { Flag } from "../flag/flag"
 import { Auth } from "../auth"
 import { Env } from "../env"
@@ -62,11 +62,11 @@ export namespace Config {
   function systemManagedConfigDir(): string {
     switch (process.platform) {
       case "darwin":
-        return "/Library/Application Support/opencode"
+        return "/Library/Application Support/awareness"
       case "win32":
-        return path.join(process.env.ProgramData || "C:\\ProgramData", "opencode")
+        return path.join(process.env.ProgramData || "C:\\ProgramData", "awareness")
       default:
-        return "/etc/opencode"
+        return "/etc/awareness"
     }
   }
 
@@ -78,7 +78,7 @@ export namespace Config {
 
   const MANAGED_PLIST_DOMAIN = "ai.opencode.managed"
 
-  // Keys injected by macOS/MDM into the managed plist that are not OpenCode config
+  // Keys injected by macOS/MDM into the managed plist that are not Awareness config
   const PLIST_META = new Set([
     "PayloadDisplayName",
     "PayloadIdentifier",
@@ -89,7 +89,7 @@ export namespace Config {
   ])
 
   /**
-   * Parse raw JSON (from plutil conversion of a managed plist) into OpenCode config.
+   * Parse raw JSON (from plutil conversion of a managed plist) into Awareness config.
    * Strips MDM metadata keys before parsing through the config schema.
    * Pure function — no OS interaction, safe to unit test directly.
    */
@@ -164,7 +164,7 @@ export namespace Config {
     }))
     json.dependencies = {
       ...json.dependencies,
-      "@opencode-ai/plugin": target,
+      "@awareness/plugin": target,
     }
     await Filesystem.writeJson(pkg, json)
 
@@ -221,7 +221,7 @@ export namespace Config {
       })
       if (!md) continue
 
-      const patterns = ["/.opencode/command/", "/.opencode/commands/", "/command/", "/commands/"]
+      const patterns = ["/.awareness/command/", "/.awareness/commands/", "/.opencode/command/", "/.opencode/commands/", "/command/", "/commands/"]
       const file = rel(item, patterns) ?? path.basename(item)
       const name = trim(file)
 
@@ -260,7 +260,7 @@ export namespace Config {
       })
       if (!md) continue
 
-      const patterns = ["/.opencode/agent/", "/.opencode/agents/", "/agent/", "/agents/"]
+      const patterns = ["/.awareness/agent/", "/.awareness/agents/", "/.opencode/agent/", "/.opencode/agents/", "/agent/", "/agents/"]
       const file = rel(item, patterns) ?? path.basename(item)
       const agentName = trim(file)
 
@@ -853,7 +853,7 @@ export namespace Config {
       command: z
         .record(z.string(), Command)
         .optional()
-        .describe("Command configuration, see https://opencode.ai/docs/commands"),
+        .describe("Command configuration, see https://awareness.dev/docs/commands"),
       skills: Skills.optional().describe("Additional skill folder paths"),
       watcher: z
         .object({
@@ -925,7 +925,7 @@ export namespace Config {
         })
         .catchall(Agent)
         .optional()
-        .describe("Agent configuration, see https://opencode.ai/docs/agents"),
+        .describe("Agent configuration, see https://awareness.dev/docs/agents"),
       provider: z
         .record(z.string(), Provider)
         .optional()
@@ -1065,7 +1065,7 @@ export namespace Config {
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/Config") {}
 
   function globalConfigFile() {
-    const candidates = ["opencode.jsonc", "opencode.json", "config.json"].map((file) =>
+    const candidates = ["awareness.jsonc", "awareness.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
       path.join(Global.Path.config, file),
     )
     for (const file of candidates) {
@@ -1188,8 +1188,8 @@ export namespace Config {
           const parsed = Info.safeParse(normalized)
           if (parsed.success) {
             if (!parsed.data.$schema && isFile) {
-              parsed.data.$schema = "https://opencode.ai/config.json"
-              const updated = original.replace(/^\s*\{/, '{\n  "$schema": "https://opencode.ai/config.json",')
+              parsed.data.$schema = "https://awareness.dev/config.json"
+              const updated = original.replace(/^\s*\{/, '{\n  "$schema": "https://awareness.dev/config.json",')
               yield* fs.writeFileString(options.path, updated).pipe(Effect.catch(() => Effect.void))
             }
             const data = parsed.data
@@ -1230,7 +1230,7 @@ export namespace Config {
                 .then(async (mod) => {
                   const { provider, model, ...rest } = mod.default
                   if (provider && model) result.model = `${provider}/${model}`
-                  result["$schema"] = "https://opencode.ai/config.json"
+                  result["$schema"] = "https://awareness.dev/config.json"
                   result = mergeDeep(result, rest)
                   await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
                   await fsNode.unlink(legacy)
@@ -1295,7 +1295,7 @@ export namespace Config {
               }
               const wellknown = (yield* Effect.promise(() => response.json())) as any
               const remoteConfig = wellknown.config ?? {}
-              if (!remoteConfig.$schema) remoteConfig.$schema = "https://opencode.ai/config.json"
+              if (!remoteConfig.$schema) remoteConfig.$schema = "https://awareness.dev/config.json"
               const source = `${url}/.well-known/opencode`
               const next = yield* loadConfig(JSON.stringify(remoteConfig), {
                 dir: path.dirname(source),
@@ -1316,7 +1316,7 @@ export namespace Config {
 
           if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
             for (const file of yield* Effect.promise(() =>
-              ConfigPaths.projectFiles("opencode", ctx.directory, ctx.worktree),
+              ConfigPaths.projectFiles("awareness", ctx.directory, ctx.worktree),
             )) {
               merge(file, yield* loadFile(file), "local")
             }
@@ -1335,8 +1335,8 @@ export namespace Config {
           const deps: Promise<void>[] = []
 
           for (const dir of unique(directories)) {
-            if (dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR) {
-              for (const file of ["opencode.json", "opencode.jsonc"]) {
+            if (dir.endsWith(".awareness") || dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR) {
+              for (const file of ["awareness.json", "awareness.jsonc", "opencode.json", "opencode.jsonc"]) {
                 const source = path.join(dir, file)
                 log.debug(`loading config from ${source}`)
                 merge(source, yield* loadFile(source))
@@ -1404,7 +1404,7 @@ export namespace Config {
           }
 
           if (existsSync(managedDir)) {
-            for (const file of ["opencode.json", "opencode.jsonc"]) {
+            for (const file of ["awareness.json", "awareness.jsonc", "opencode.json", "opencode.jsonc"]) {
               const source = path.join(managedDir, file)
               merge(source, yield* loadFile(source), "global")
             }

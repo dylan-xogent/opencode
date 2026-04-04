@@ -294,17 +294,17 @@ export namespace LLM {
       maxOutputTokens,
       abortSignal: input.abort,
       headers: {
-        ...(input.model.providerID.startsWith("opencode")
+        ...(input.model.providerID.startsWith("awareness")
           ? {
-              "x-opencode-project": Instance.project.id,
-              "x-opencode-session": input.sessionID,
-              "x-opencode-request": input.user.id,
-              "x-opencode-client": Flag.OPENCODE_CLIENT,
+              "x-awareness-project": Instance.project.id,
+              "x-awareness-session": input.sessionID,
+              "x-awareness-request": input.user.id,
+              "x-awareness-client": Flag.OPENCODE_CLIENT,
             }
           : {
               "x-session-affinity": input.sessionID,
               ...(input.parentSessionID ? { "x-parent-session-id": input.parentSessionID } : {}),
-              "User-Agent": `opencode/${Installation.VERSION}`,
+              "User-Agent": `awareness/${Installation.VERSION}`,
             }),
         ...input.model.headers,
         ...headers,

@@ -48,9 +48,9 @@ jobs:
           opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
-      - name: Install OpenCode
+      - name: Install Awareness
         if: inputs.bump || inputs.version
-        run: bun i -g opencode-ai
+        run: bun i -g awareness-ai
 
       - id: version
         run: |
@@ -97,15 +97,15 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: opencode-cli
+          name: awareness-cli
           path: |
-            packages/opencode/dist/opencode-darwin*
-            packages/opencode/dist/opencode-linux*
+            packages/opencode/dist/awareness-darwin*
+            packages/opencode/dist/awareness-linux*
 
       - uses: actions/upload-artifact@v4
         with:
-          name: opencode-cli-windows
-          path: packages/opencode/dist/opencode-windows*
+          name: awareness-cli-windows
+          path: packages/opencode/dist/awareness-windows*
     outputs:
       version: ${{ needs.version.outputs.version }}
 
@@ -127,7 +127,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: opencode-cli-windows
+          name: awareness-cli-windows
           path: packages/opencode/dist
 
       - name: Setup git committer
@@ -150,9 +150,9 @@ jobs:
           signing-account-name: ${{ env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
           files: |
-            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64\bin\opencode.exe
-            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64\bin\opencode.exe
-            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline\bin\opencode.exe
+            ${{ github.workspace }}\packages\opencode\dist\awareness-windows-arm64\bin\awareness.exe
+            ${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64\bin\awareness.exe
+            ${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64-baseline\bin\awareness.exe
           exclude-environment-credential: true
           exclude-workload-identity-credential: true
           exclude-managed-identity-credential: true
@@ -168,9 +168,9 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64\bin\opencode.exe",
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64\bin\opencode.exe",
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline\bin\opencode.exe"
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-arm64\bin\awareness.exe",
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64\bin\awareness.exe",
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64-baseline\bin\awareness.exe"
           )
 
           foreach ($file in $files) {
@@ -184,9 +184,9 @@ jobs:
         working-directory: packages/opencode/dist
         shell: pwsh
         run: |
-          Compress-Archive -Path "opencode-windows-arm64\bin\*" -DestinationPath "opencode-windows-arm64.zip" -Force
-          Compress-Archive -Path "opencode-windows-x64\bin\*" -DestinationPath "opencode-windows-x64.zip" -Force
-          Compress-Archive -Path "opencode-windows-x64-baseline\bin\*" -DestinationPath "opencode-windows-x64-baseline.zip" -Force
+          Compress-Archive -Path "awareness-windows-arm64\bin\*" -DestinationPath "awareness-windows-arm64.zip" -Force
+          Compress-Archive -Path "awareness-windows-x64\bin\*" -DestinationPath "awareness-windows-x64.zip" -Force
+          Compress-Archive -Path "awareness-windows-x64-baseline\bin\*" -DestinationPath "awareness-windows-x64-baseline.zip" -Force
 
       - name: Upload signed Windows CLI release assets
         if: needs.version.outputs.release != ''
@@ -195,19 +195,19 @@ jobs:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
         run: |
           gh release upload "v${{ needs.version.outputs.version }}" `
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64.zip" `
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64.zip" `
-            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-arm64.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\awareness-windows-x64-baseline.zip" `
             --clobber `
             --repo "${{ needs.version.outputs.repo }}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: opencode-cli-signed-windows
+          name: awareness-cli-signed-windows
           path: |
-            packages/opencode/dist/opencode-windows-arm64
-            packages/opencode/dist/opencode-windows-x64
-            packages/opencode/dist/opencode-windows-x64-baseline
+            packages/opencode/dist/awareness-windows-arm64
+            packages/opencode/dist/awareness-windows-x64
+            packages/opencode/dist/awareness-windows-x64-baseline
 
   build-tauri:
     needs:
@@ -312,7 +312,7 @@ jobs:
         env:
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
-          OPENCODE_CLI_ARTIFACT: ${{ (runner.os == 'Windows' && 'opencode-cli-windows') || 'opencode-cli' }}
+          OPENCODE_CLI_ARTIFACT: ${{ (runner.os == 'Windows' && 'awareness-cli-windows') || 'awareness-cli' }}
           RUST_TARGET: ${{ matrix.settings.target }}
           GH_TOKEN: ${{ github.token }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -354,8 +354,8 @@ jobs:
           releaseId: ${{ needs.version.outputs.release }}
           tagName: ${{ needs.version.outputs.tag }}
           releaseDraft: true
-          releaseAssetNamePattern: opencode-desktop-[platform]-[arch][ext]
-          repo: ${{ (github.ref_name == 'beta' && 'opencode-beta') || '' }}
+          releaseAssetNamePattern: awareness-desktop-[platform]-[arch][ext]
+          repo: ${{ (github.ref_name == 'beta' && 'awareness-beta') || '' }}
           releaseCommitish: ${{ github.sha }}
         env:
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
@@ -374,7 +374,7 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
-            "${{ github.workspace }}\packages\desktop\src-tauri\sidecars\opencode-cli-${{ matrix.settings.target }}.exe"
+            "${{ github.workspace }}\packages\desktop\src-tauri\sidecars\awareness-cli-${{ matrix.settings.target }}.exe"
           )
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\src-tauri\target\${{ matrix.settings.target }}\release\bundle\nsis\*.exe" | Select-Object -ExpandProperty FullName
 
@@ -480,7 +480,7 @@ jobs:
         env:
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
           OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
-          OPENCODE_CLI_ARTIFACT: ${{ (runner.os == 'Windows' && 'opencode-cli-windows') || 'opencode-cli' }}
+          OPENCODE_CLI_ARTIFACT: ${{ (runner.os == 'Windows' && 'awareness-cli-windows') || 'awareness-cli' }}
           RUST_TARGET: ${{ matrix.settings.target }}
           GH_TOKEN: ${{ github.token }}
           GITHUB_RUN_ID: ${{ github.run_id }}
@@ -520,7 +520,7 @@ jobs:
           $files = @()
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop-electron\dist\*.exe" | Select-Object -ExpandProperty FullName
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop-electron\dist\*unpacked\*.exe" | Select-Object -ExpandProperty FullName
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop-electron\dist\*unpacked\resources\opencode-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop-electron\dist\*unpacked\resources\awareness-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
           foreach ($file in $files | Select-Object -Unique) {
             $sig = Get-AuthenticodeSignature $file
@@ -531,7 +531,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: opencode-electron-${{ matrix.settings.target }}
+          name: awareness-electron-${{ matrix.settings.target }}
           path: packages/desktop-electron/dist/*
 
       - uses: actions/upload-artifact@v4
@@ -580,17 +580,17 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: opencode-cli
+          name: awareness-cli
           path: packages/opencode/dist
 
       - uses: actions/download-artifact@v4
         with:
-          name: opencode-cli-windows
+          name: awareness-cli-windows
           path: packages/opencode/dist
 
       - uses: actions/download-artifact@v4
         with:
-          name: opencode-cli-signed-windows
+          name: awareness-cli-signed-windows
           path: packages/opencode/dist
 
       - uses: actions/download-artifact@v4
@@ -614,8 +614,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          git config --global user.email "opencode@sst.dev"
-          git config --global user.name "opencode"
+          git config --global user.email "awareness@sst.dev"
+          git config --global user.name "awareness"
           ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
 
       - run: ./script/publish.ts
