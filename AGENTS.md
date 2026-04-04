@@ -126,3 +126,47 @@ const table = sqliteTable("session", {
 ## Type Checking
 
 - Always run `bun typecheck` from package directories (e.g., `packages/opencode`), never `tsc` directly.
+
+## Monorepo & Build Commands
+
+```bash
+# Build the opencode CLI
+bun run --filter=opencode build
+
+# Test opencode (run from packages/opencode/ OR use filter from root)
+cd packages/opencode && bun test --timeout 30000
+# Never run tests from repo root — see guard above
+
+# Typecheck a package
+cd packages/opencode && bun typecheck
+
+# Format
+bun run format
+```
+
+## Fork Information
+
+- `origin` → `https://github.com/dylan-xogent/opencode`
+- `upstream` → `https://github.com/anomalyco/opencode.git`
+- Working branch: `dev`
+- Merge upstream: `git fetch upstream && git merge upstream/dev`
+
+## Our Customizations
+
+All custom work lives under `.opencode/` — this directory is not touched by upstream merges.
+Key files also customized in source:
+- `packages/opencode/src/cli/cmd/tui/routes/session/index.tsx` — model ID in Task title
+- `packages/opencode/src/cli/cmd/tui/routes/session/subagent-footer.tsx` — model ID in footer
+
+When upstream modifies these session files, stash our changes before merging, then reapply.
+
+## Runtime State — Never Commit
+
+`**/.omc/` is gitignored. These are ephemeral session files — if they appear in `git status`, run `git rm --cached`.
+
+## Key Architecture (post v1.3.14)
+
+- Tool resolution is registry-based: `packages/opencode/src/tool/registry.ts`
+- Git operations: `packages/opencode/src/git/index.ts` (replaced old `util/git.ts`)
+- `Vcs.Mode`: `"git"` = working tree diff, `"branch"` = diff from merge-base with default branch
+- Snapshot diffFull batches blob reads — avoid sequential per-file diff calls

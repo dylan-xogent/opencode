@@ -1,19 +1,13 @@
 /// <reference path="../env.d.ts" />
 import { tool } from "@opencode-ai/plugin"
-const TEAM = {
-  desktop: ["adamdotdevin", "iamdavidhill", "Brendonovich", "nexxeln"],
-  zen: ["fwang", "MrMushrooooom"],
-  tui: ["thdxr", "kommander", "rekram1-node"],
-  core: ["thdxr", "rekram1-node", "jlongster"],
-  docs: ["R44VC0RP"],
-  windows: ["Hona"],
-} as const
 
-const ASSIGNEES = [...new Set(Object.values(TEAM).flat())]
+// Update OWNER/REPO to match this fork's repository
+const OWNER = "dylan-xogent"
+const REPO = "opencode"
 
-function pick<T>(items: readonly T[]) {
-  return items[Math.floor(Math.random() * items.length)]!
-}
+// Labels available in this repo — extend as needed
+const LABELS = ["bug", "feature", "docs", "ci", "tui", "core", "plugin", "upstream", "needs-triage"] as const
+type Label = (typeof LABELS)[number]
 
 function getIssueNumber(): number {
   const issue = parseInt(process.env.ISSUE_NUMBER ?? "", 10)
@@ -38,77 +32,27 @@ async function githubFetch(endpoint: string, options: RequestInit = {}) {
 }
 
 export default tool({
-  description: `Use this tool to assign and/or label a GitHub issue.
-
-Choose labels and assignee using the current triage policy and ownership rules.
-Pick the most fitting labels for the issue and assign one owner.
-
-If unsure, choose the team/section with the most overlap with the issue and assign a member from that team at random.`,
+  description: `Use this tool to label a GitHub issue in dylan-xogent/opencode.
+Choose the most appropriate labels based on the issue content.
+If the issue appears to be from upstream (anomalyco/opencode), add the "upstream" label.`,
   args: {
-    assignee: tool.schema
-      .enum(ASSIGNEES as [string, ...string[]])
-      .describe("The username of the assignee")
-      .default("rekram1-node"),
     labels: tool.schema
-      .array(tool.schema.enum(["nix", "opentui", "perf", "web", "desktop", "zen", "docs", "windows", "core"]))
-      .describe("The labels(s) to add to the issue")
-      .default([]),
+      .array(tool.schema.enum(LABELS as [Label, ...Label[]]))
+      .describe("Labels to add to the issue")
+      .default(["needs-triage"]),
   },
   async execute(args) {
     const issue = getIssueNumber()
-    const owner = "anomalyco"
-    const repo = "opencode"
-
     const results: string[] = []
-    let labels = [...new Set(args.labels.map((x) => (x === "desktop" ? "web" : x)))]
-    const web = labels.includes("web")
-    const text = `${process.env.ISSUE_TITLE ?? ""}\n${process.env.ISSUE_BODY ?? ""}`.toLowerCase()
-    const zen = /\bzen\b/.test(text) || text.includes("opencode black")
-    const nix = /\bnix(os)?\b/.test(text)
 
-    if (labels.includes("nix") && !nix) {
-      labels = labels.filter((x) => x !== "nix")
-      results.push("Dropped label: nix (issue does not mention nix)")
-    }
-
-    const assignee = nix ? "rekram1-node" : web ? pick(TEAM.desktop) : args.assignee
-
-    if (labels.includes("zen") && !zen) {
-      throw new Error("Only add the zen label when issue title/body contains 'zen'")
-    }
-
-    if (web && !nix && !(TEAM.desktop as readonly string[]).includes(assignee)) {
-      throw new Error("Web issues must be assigned to adamdotdevin, iamdavidhill, Brendonovich, or nexxeln")
-    }
-
-    if ((TEAM.zen as readonly string[]).includes(assignee) && !labels.includes("zen")) {
-      throw new Error("Only zen issues should be assigned to fwang or MrMushrooooom")
-    }
-
-    if (assignee === "Hona" && !labels.includes("windows")) {
-      throw new Error("Only windows issues should be assigned to Hona")
-    }
-
-    if (assignee === "R44VC0RP" && !labels.includes("docs")) {
-      throw new Error("Only docs issues should be assigned to R44VC0RP")
-    }
-
-    if (assignee === "kommander" && !labels.includes("opentui")) {
-      throw new Error("Only opentui issues should be assigned to kommander")
-    }
-
-    await githubFetch(`/repos/${owner}/${repo}/issues/${issue}/assignees`, {
-      method: "POST",
-      body: JSON.stringify({ assignees: [assignee] }),
-    })
-    results.push(`Assigned @${assignee} to issue #${issue}`)
+    const labels = [...new Set(args.labels)]
 
     if (labels.length > 0) {
-      await githubFetch(`/repos/${owner}/${repo}/issues/${issue}/labels`, {
+      await githubFetch(`/repos/${OWNER}/${REPO}/issues/${issue}/labels`, {
         method: "POST",
         body: JSON.stringify({ labels }),
       })
-      results.push(`Added labels: ${labels.join(", ")}`)
+      results.push(`Added labels to #${issue}: ${labels.join(", ")}`)
     }
 
     return results.join("\n")

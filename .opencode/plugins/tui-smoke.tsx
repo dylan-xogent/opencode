@@ -9,6 +9,7 @@ import type {
   TuiPluginModule,
   TuiSlotPlugin,
 } from "@opencode-ai/plugin/tui"
+import { createSignal, onCleanup } from "solid-js"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
@@ -69,10 +70,23 @@ const statusColor = (status: string, skin: Skin): string => {
 }
 
 const MissionsTab = (props: { statePath: string; skin: Skin }) => {
-  const missions = readMissions(props.statePath)
-  const tracking = readTracking(props.statePath)
+  const [tick, setTick] = createSignal(0)
+  const timer = setInterval(() => setTick((n) => n + 1), 2000)
+  onCleanup(() => clearInterval(timer))
 
-  if (!missions && !tracking) {
+  const missions = () => {
+    void tick()
+    return readMissions(props.statePath)
+  }
+  const tracking = () => {
+    void tick()
+    return readTracking(props.statePath)
+  }
+
+  const m = missions()
+  const t = tracking()
+
+  if (!m && !t) {
     return (
       <box flexDirection="column" gap={1}>
         <text fg={props.skin.muted}>No mission state found.</text>
@@ -82,15 +96,15 @@ const MissionsTab = (props: { statePath: string; skin: Skin }) => {
     )
   }
 
-  const active = missions?.missions.filter((m) => m.status !== "done" && m.status !== "completed") ?? []
-  const recent = missions?.missions.filter((m) => m.status === "done" || m.status === "completed").slice(-2) ?? []
+  const active = m?.missions.filter((ms) => ms.status !== "done" && ms.status !== "completed") ?? []
+  const recent = m?.missions.filter((ms) => ms.status === "done" || ms.status === "completed").slice(-2) ?? []
 
   return (
     <box flexDirection="column" gap={1}>
-      {tracking ? (
+      {t ? (
         <text fg={props.skin.muted}>
-          Agents — spawned: {tracking.total_spawned} · done: {tracking.total_completed} · failed:{" "}
-          <span style={{ fg: tracking.total_failed > 0 ? "#ef4444" : props.skin.muted }}>{tracking.total_failed}</span>
+          Agents — spawned: {t.total_spawned} · done: {t.total_completed} · failed:{" "}
+          <span style={{ fg: t.total_failed > 0 ? "#ef4444" : props.skin.muted }}>{t.total_failed}</span>
         </text>
       ) : null}
 
@@ -99,14 +113,14 @@ const MissionsTab = (props: { statePath: string; skin: Skin }) => {
           <text fg={props.skin.text}>
             <b>Active ({active.length})</b>
           </text>
-          {active.map((m) => (
+          {active.map((ms) => (
             <box flexDirection="column">
               <text fg={props.skin.accent}>
-                {m.name || m.id.split(":")[1]?.slice(0, 12) ?? m.id} —{" "}
-                <span style={{ fg: statusColor(m.status, props.skin) }}>{m.status}</span>
+                {ms.name || ms.id.split(":")[1]?.slice(0, 12) ?? ms.id} —{" "}
+                <span style={{ fg: statusColor(ms.status, props.skin) }}>{ms.status}</span>
               </text>
-              <text fg={props.skin.muted}>  {m.objective}</text>
-              {m.agents.map((a) => (
+              <text fg={props.skin.muted}>  {ms.objective}</text>
+              {ms.agents.map((a) => (
                 <text fg={props.skin.muted}>
                   {"  "}
                   {a.role}
@@ -115,7 +129,8 @@ const MissionsTab = (props: { statePath: string; skin: Skin }) => {
                 </text>
               ))}
               <text fg={props.skin.muted}>
-                {"  "}tasks: {m.taskCounts.completed}/{m.taskCounts.total} done, {m.taskCounts.inProgress} running
+                {"  "}tasks: {ms.taskCounts.completed}/{ms.taskCounts.total} done,{" "}
+                {ms.taskCounts.inProgress} running
               </text>
             </box>
           ))}
@@ -129,16 +144,14 @@ const MissionsTab = (props: { statePath: string; skin: Skin }) => {
           <text fg={props.skin.muted}>
             <b>Recent</b>
           </text>
-          {recent.map((m) => (
-            <text fg={props.skin.muted}>
-              ✓ {m.name || m.id.split(":")[1]?.slice(0, 12) ?? m.id}
-            </text>
+          {recent.map((ms) => (
+            <text fg={props.skin.muted}>✓ {ms.name || ms.id.split(":")[1]?.slice(0, 12) ?? ms.id}</text>
           ))}
         </box>
       ) : null}
 
-      {missions ? (
-        <text fg={props.skin.muted}>Updated: {new Date(missions.updatedAt).toLocaleTimeString()}</text>
+      {m ? (
+        <text fg={props.skin.muted}>Updated: {new Date(m.updatedAt).toLocaleTimeString()}</text>
       ) : null}
     </box>
   )
@@ -745,137 +758,17 @@ const Modal = (props: {
   )
 }
 
-const home = (api: TuiPluginApi, input: Cfg) => ({
+const home = (api: TuiPluginApi) => ({
   slots: {
-    home_logo(ctx) {
-      const map = ctx.theme.current
-      const skin = look(map)
-      const art = [
-        "                                  $$\\",
-        "                                  $$ |",
-        " $$$$$$$\\ $$$$$$\\$$$$\\   $$$$$$\\  $$ |  $$\\  $$$$$$\\",
-        "$$  _____|$$  _$$  _$$\\ $$  __$$\\ $$ | $$  |$$  __$$\\",
-        "\\$$$$$$\\  $$ / $$ / $$ |$$ /  $$ |$$$$$$  / $$$$$$$$ |",
-        " \\____$$\\ $$ | $$ | $$ |$$ |  $$ |$$  _$$<  $$   ____|",
-        "$$$$$$$  |$$ | $$ | $$ |\\$$$$$$  |$$ | \\$$\\ \\$$$$$$$\\",
-        "\\_______/ \\__| \\__| \\__| \\______/ \\__|  \\__| \\_______|",
-      ]
-      const fill = [
-        skin.accent,
-        skin.muted,
-        ink(map, "info", ui.accent),
-        skin.text,
-        ink(map, "success", ui.accent),
-        ink(map, "warning", ui.accent),
-        ink(map, "secondary", ui.accent),
-        ink(map, "error", ui.accent),
-      ]
-
-      return (
-        <box flexDirection="column">
-          {art.map((line, i) => (
-            <text fg={fill[i]}>{line}</text>
-          ))}
-        </box>
-      )
-    },
-    home_prompt(ctx, value) {
+    session_prompt_right(ctx: { theme: typeof api.theme }, value: { session_id: string }) {
       const skin = look(ctx.theme.current)
-      type Prompt = (props: {
-        workspaceID?: string
-        visible?: boolean
-        disabled?: boolean
-        onSubmit?: () => void
-        hint?: JSX.Element
-        right?: JSX.Element
-        showPlaceholder?: boolean
-        placeholders?: {
-          normal?: string[]
-          shell?: string[]
-        }
-      }) => JSX.Element
-      type Slot = (
-        props: { name: string; mode?: unknown; children?: JSX.Element } & Record<string, unknown>,
-      ) => JSX.Element | null
-      const ui = api.ui as TuiPluginApi["ui"] & { Prompt: Prompt; Slot: Slot }
-      const Prompt = ui.Prompt
-      const Slot = ui.Slot
-      const normal = [
-        `[SMOKE] route check for ${input.label}`,
-        "[SMOKE] confirm home_prompt slot override",
-        "[SMOKE] verify prompt-right slot passthrough",
-      ]
-      const shell = ["printf '[SMOKE] home prompt\n'", "git status --short", "bun --version"]
-      const hint = (
-        <box flexShrink={0} flexDirection="row" gap={1}>
-          <text fg={skin.muted}>
-            <span style={{ fg: skin.accent }}>•</span> smoke home prompt
-          </text>
-        </box>
-      )
-
-      return (
-        <Prompt
-          workspaceID={value.workspace_id}
-          hint={hint}
-          right={
-            <box flexDirection="row" gap={1}>
-              <Slot name="home_prompt_right" workspace_id={value.workspace_id} />
-              <Slot name="smoke_prompt_right" workspace_id={value.workspace_id} label={input.label} />
-            </box>
-          }
-          placeholders={{ normal, shell }}
-        />
-      )
-    },
-    home_prompt_right(ctx, value) {
-      const skin = look(ctx.theme.current)
-      const id = value.workspace_id?.slice(0, 8) ?? "none"
+      const branch = api.state.vcs?.branch
       return (
         <text fg={skin.muted}>
-          <span style={{ fg: skin.accent }}>{input.label}</span> home:{id}
+          {branch ? <span style={{ fg: skin.accent }}>{branch}</span> : null}
+          {branch ? "  " : null}
+          {value.session_id.slice(0, 8)}
         </text>
-      )
-    },
-    session_prompt_right(ctx, value) {
-      const skin = look(ctx.theme.current)
-      return (
-        <text fg={skin.muted}>
-          <span style={{ fg: skin.accent }}>{input.label}</span> session:{value.session_id.slice(0, 8)}
-        </text>
-      )
-    },
-    smoke_prompt_right(ctx, value) {
-      const skin = look(ctx.theme.current)
-      const id = typeof value.workspace_id === "string" ? value.workspace_id.slice(0, 8) : "none"
-      const label = typeof value.label === "string" ? value.label : input.label
-      return (
-        <text fg={skin.muted}>
-          <span style={{ fg: skin.accent }}>{label}</span> custom:{id}
-        </text>
-      )
-    },
-    home_bottom(ctx) {
-      const skin = look(ctx.theme.current)
-      const text = "extra content in the unified home bottom slot"
-
-      return (
-        <box width="100%" maxWidth={75} alignItems="center" paddingTop={1} flexShrink={0} gap={1}>
-          <box
-            border
-            borderColor={skin.border}
-            backgroundColor={skin.panel}
-            paddingTop={1}
-            paddingBottom={1}
-            paddingLeft={2}
-            paddingRight={2}
-            width="100%"
-          >
-            <text fg={skin.muted}>
-              <span style={{ fg: skin.accent }}>{input.label}</span> {text}
-            </text>
-          </box>
-        </box>
       )
     },
   },
@@ -886,6 +779,10 @@ const agentsBlock = (statePath: string): TuiSlotPlugin => ({
   slots: {
     sidebar_content(ctx) {
       const skin = look(ctx.theme.current)
+      const [tick, setTick] = createSignal(0)
+      const timer = setInterval(() => setTick((n) => n + 1), 2000)
+      onCleanup(() => clearInterval(timer))
+      void tick()
       const tracking = readTracking(statePath)
       const missions = readMissions(statePath)
       const active = missions?.missions.filter((m) => m.status !== "done" && m.status !== "completed") ?? []
@@ -933,8 +830,8 @@ const agentsBlock = (statePath: string): TuiSlotPlugin => ({
   },
 })
 
-const slot = (api: TuiPluginApi, input: Cfg): TuiSlotPlugin[] => [
-  home(api, input),
+const slot = (api: TuiPluginApi): TuiSlotPlugin[] => [
+  home(api),
   agentsBlock(api.state.path.state),
 ]
 
@@ -1083,7 +980,7 @@ const tui: TuiPlugin = async (api, options, meta) => {
   ])
 
   reg(api, value, keys)
-  for (const item of slot(api, value)) {
+  for (const item of slot(api)) {
     api.slots.register(item)
   }
 }

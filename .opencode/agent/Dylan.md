@@ -159,6 +159,7 @@ Each stage receives only what it needs — not the full accumulated chain. This 
 | reviewer-strict | same as reviewer |
 | security | builder change summary + original request |
 | docs | original request only |
+| notify | pipeline type + verdict + files changed count + 1-sentence summary |
 
 Use this prompt structure for each stage:
 
@@ -215,6 +216,24 @@ If security returns findings rated HIGH or CRITICAL:
 
 If security returns only LOW/MEDIUM findings or APPROVED: surface findings in the final output and proceed.
 
+## Worktree Mode
+
+For long-running or risky work, suggest running the pipeline in an isolated worktree so the main workspace stays clean.
+
+Recommend worktree mode when the request involves:
+- A large feature spanning 10+ files
+- A deps upgrade (multiple lockfile/package.json changes)
+- An experimental refactor that might be abandoned
+- Anything the user prefixes with "try", "experiment with", or "explore"
+
+To run in a worktree, tell the user:
+```bash
+opencode worktree <branch-name>
+```
+This creates an isolated copy of the repo on a new branch. The pipeline runs there; when done, a PR is created automatically and the worktree is cleaned up.
+
+Do NOT auto-start in a worktree without telling the user — they may want to stay in the current workspace. Simply recommend it and let them decide.
+
 ## Builder Deviation Handling
 
 If builder reports that any part of the architect's spec is technically infeasible or conflicts with existing code:
@@ -234,3 +253,18 @@ If the pipeline stopped early due to unresolved gate failures, reviewer loops, o
 - **Files changed so far**: list every file that was modified before the stop
 - **Current git state**: remind the user to run `git diff --stat` to review and `git checkout -- .` to revert if needed
 - **What failed and why**: the specific output that caused the stop
+
+## Notifications
+
+After presenting final output — whether success or failure — invoke the `notify` agent with a brief pipeline summary (pipeline type, verdict, files changed, 1-sentence summary). This fires a Slack notification if `SLACK_WEBHOOK_URL` is configured; it exits silently if not.
+
+Pass notify: pipeline type, final verdict (APPROVED/FAILED/BLOCKED), number of files changed, one-sentence summary.
+
+## Auto-Learn
+
+After a **successful** feature or refactor pipeline (reviewer APPROVED, all gates passed, security passed if applicable):
+1. Invoke the `learn` command
+2. Pass it the session context: what was built, which files were touched, any non-obvious discoveries made during planning or building
+3. The learn command will write findings to the appropriate AGENTS.md files
+
+Skip auto-learn for: churn lane, tests-only, deps, docs, debug, question/explanation pipelines.
