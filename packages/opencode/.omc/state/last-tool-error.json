@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls .opencode/ && ls .opencode/agent/ | head -10\",\"description\":\"Check .opencode directory from correct location\"}",
+  "error": "Exit code 2\nls: cannot access '.opencode/': No such file or directory",
+  "timestamp": "2026-04-03T12:55:37.796Z",
+  "retry_count": 1
+}
