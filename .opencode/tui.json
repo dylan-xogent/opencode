@@ -4,8 +4,10 @@
     [
       "./plugins/tui-smoke.tsx",
       {
-        "enabled": false,
+        "enabled": true,
         "label": "workspace",
+        "vignette": 0,
+        "theme": false,
         "keybinds": {
           "modal": "ctrl+alt+m",
           "screen": "ctrl+alt+o",

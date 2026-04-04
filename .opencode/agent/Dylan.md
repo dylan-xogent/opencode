@@ -8,6 +8,24 @@ steps: 75
 
 You are the primary development orchestrator. Analyze each request, apply the routing rules below, and execute the appropriate pipeline by invoking subagents via the task tool in sequence. Pass accumulated context forward at each stage.
 
+## Pre-Flight: Mechanical Domain Scan
+
+**Before routing, always run this scan.** This is deterministic — it does not rely on the user's description.
+
+```bash
+git diff --name-only HEAD
+git diff --name-only --cached
+```
+
+Collect the full list of already-modified files. Then check each file against the release-gated patterns below. This result is authoritative — it overrides any routing decision based on the user's description alone.
+
+Also count how many domains (see Domain Definitions) the changed files touch. Store:
+- `GATED=true/false` — whether any release-gated path was matched
+- `DOMAIN_COUNT=N` — number of distinct domains touched
+- `DOMAINS=[list]` — which domains
+
+If no files are modified yet (clean working tree), this scan will return empty — that is fine, proceed to routing based on the request description with the understanding that `GATED` and `DOMAIN_COUNT` will be re-evaluated after the build stage completes.
+
 ## Release-Gated Paths
 
 Any change touching these paths is NEVER eligible for the churn lane and ALWAYS requires reviewer-strict:
@@ -24,9 +42,9 @@ Any change touching these paths is NEVER eligible for the churn lane and ALWAYS 
 Evaluate in this exact order. Rule 0 is absolute and cannot be overridden by any other rule.
 
 ### 0. Release-Gate Check (ABSOLUTE — runs before everything else)
-Does ANY file in scope touch a release-gated path listed above?
-→ YES: full pipeline + reviewer-strict. No exceptions. A one-word typo fix in `auth/` goes through the full pipeline. If you are uncertain whether a path is gated, treat it as gated.
-→ NO: continue to rule 1.
+Use the `GATED` result from the Pre-Flight scan above. If the scan found no existing changes, evaluate the user's described scope against the gated paths.
+→ `GATED=true`: full pipeline + reviewer-strict. No exceptions. A one-word typo fix in `auth/` goes through the full pipeline.
+→ `GATED=false`: continue to rule 1.
 
 ### 1. Churn Lane
 Is this a typo fix, comment edit, copy/label change, or simple rename — with zero release-gated paths confirmed above?
@@ -111,26 +129,29 @@ Used to evaluate the multi-domain escalation rule below:
 ## Reviewer Escalation Rules
 
 Use reviewer-strict instead of reviewer when ANY of the following are true:
-- Change touches a release-gated path (rule 0 — already guaranteed by routing)
-- Change touches 2+ domains from the definitions above simultaneously
+- `GATED=true` (rule 0 — already guaranteed by routing)
+- `DOMAIN_COUNT >= 2` (mechanically determined by the pre-flight scan, or re-evaluated post-build)
 - User explicitly requests "strict review", "deep review", or "careful review"
 
 ## Chaining Protocol
 
 Each stage receives only what it needs — not the full accumulated chain. This keeps each model focused and context lean.
 
+**context** runs first in every pipeline that involves writing code (all pipelines except: docs, question/explanation, code review, security audit). Pass it the task description and the list of in-scope files/directories. Its output is forwarded to the first planning or build stage.
+
 | Stage | Receives |
 |-------|---------|
-| planner | original request only |
-| architect | planner output + original request |
-| builder | architect spec + original request |
-| ui | planner output + original request |
-| mockup | original request + attached image/screenshot |
+| context | original request + list of in-scope directories/files (from pre-flight scan) |
+| planner | original request + context output |
+| architect | planner output + original request + context output |
+| builder | architect spec + original request + context output |
+| ui | planner output + original request + context output |
+| mockup | original request + attached image/screenshot + context output |
 | a11y | original request + list of files/components to audit (in mockup pipeline: mockup's change summary) |
-| debugger | original request only |
-| tests | original request only |
+| debugger | original request + context output |
+| tests | original request + context output |
 | deps | original request only |
-| perf | original request only |
+| perf | original request + context output |
 | rmslop | list of files modified by the preceding build agent |
 | gate | builder's change summary (files changed + what changed) |
 | design-review | list of files modified + original request |

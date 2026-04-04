@@ -9,8 +9,140 @@ import type {
   TuiPluginModule,
   TuiSlotPlugin,
 } from "@opencode-ai/plugin/tui"
+import { readFileSync } from "node:fs"
+import { join } from "node:path"
 
-const tabs = ["overview", "counter", "help"]
+const tabs = ["overview", "missions", "help"]
+
+// --- Mission state types and reader ---
+
+type MissionAgent = {
+  name: string
+  role: string
+  status: string
+  updatedAt: string
+}
+
+type Mission = {
+  id: string
+  name: string
+  objective: string
+  status: string
+  agents: MissionAgent[]
+  taskCounts: { total: number; completed: number; failed: number; inProgress: number; pending: number }
+}
+
+type MissionState = {
+  missions: Mission[]
+  updatedAt: string
+}
+
+type AgentTracking = {
+  agents: Array<{ agent_type: string; status: string; started_at: string; duration_ms?: number }>
+  total_spawned: number
+  total_completed: number
+  total_failed: number
+  last_updated: string
+}
+
+const readMissions = (statePath: string): MissionState | null => {
+  try {
+    return JSON.parse(readFileSync(join(statePath, "mission-state.json"), "utf-8")) as MissionState
+  } catch {
+    return null
+  }
+}
+
+const readTracking = (statePath: string): AgentTracking | null => {
+  try {
+    return JSON.parse(readFileSync(join(statePath, "subagent-tracking.json"), "utf-8")) as AgentTracking
+  } catch {
+    return null
+  }
+}
+
+const statusColor = (status: string, skin: Skin): string => {
+  if (status === "done" || status === "completed") return "#22c55e"
+  if (status === "failed") return "#ef4444"
+  if (status === "in_progress" || status === "running") return "#f59e0b"
+  return typeof skin.muted === "string" ? skin.muted : "#a5a5a5"
+}
+
+const MissionsTab = (props: { statePath: string; skin: Skin }) => {
+  const missions = readMissions(props.statePath)
+  const tracking = readTracking(props.statePath)
+
+  if (!missions && !tracking) {
+    return (
+      <box flexDirection="column" gap={1}>
+        <text fg={props.skin.muted}>No mission state found.</text>
+        <text fg={props.skin.muted}>State path: {props.statePath}</text>
+        <text fg={props.skin.muted}>Run a pipeline via the Dylan agent to populate this view.</text>
+      </box>
+    )
+  }
+
+  const active = missions?.missions.filter((m) => m.status !== "done" && m.status !== "completed") ?? []
+  const recent = missions?.missions.filter((m) => m.status === "done" || m.status === "completed").slice(-2) ?? []
+
+  return (
+    <box flexDirection="column" gap={1}>
+      {tracking ? (
+        <text fg={props.skin.muted}>
+          Agents — spawned: {tracking.total_spawned} · done: {tracking.total_completed} · failed:{" "}
+          <span style={{ fg: tracking.total_failed > 0 ? "#ef4444" : props.skin.muted }}>{tracking.total_failed}</span>
+        </text>
+      ) : null}
+
+      {active.length > 0 ? (
+        <box flexDirection="column" gap={1}>
+          <text fg={props.skin.text}>
+            <b>Active ({active.length})</b>
+          </text>
+          {active.map((m) => (
+            <box flexDirection="column">
+              <text fg={props.skin.accent}>
+                {m.name || m.id.split(":")[1]?.slice(0, 12) ?? m.id} —{" "}
+                <span style={{ fg: statusColor(m.status, props.skin) }}>{m.status}</span>
+              </text>
+              <text fg={props.skin.muted}>  {m.objective}</text>
+              {m.agents.map((a) => (
+                <text fg={props.skin.muted}>
+                  {"  "}
+                  {a.role}
+                  {a.name ? ` (${a.name.slice(-7)})` : ""} —{" "}
+                  <span style={{ fg: statusColor(a.status, props.skin) }}>{a.status}</span>
+                </text>
+              ))}
+              <text fg={props.skin.muted}>
+                {"  "}tasks: {m.taskCounts.completed}/{m.taskCounts.total} done, {m.taskCounts.inProgress} running
+              </text>
+            </box>
+          ))}
+        </box>
+      ) : (
+        <text fg={props.skin.muted}>No active missions</text>
+      )}
+
+      {recent.length > 0 ? (
+        <box flexDirection="column" gap={1}>
+          <text fg={props.skin.muted}>
+            <b>Recent</b>
+          </text>
+          {recent.map((m) => (
+            <text fg={props.skin.muted}>
+              ✓ {m.name || m.id.split(":")[1]?.slice(0, 12) ?? m.id}
+            </text>
+          ))}
+        </box>
+      ) : null}
+
+      {missions ? (
+        <text fg={props.skin.muted}>Updated: {new Date(missions.updatedAt).toLocaleTimeString()}</text>
+      ) : null}
+    </box>
+  )
+}
 const bind = {
   modal: "ctrl+shift+m",
   screen: "ctrl+shift+o",
@@ -52,6 +184,7 @@ type Cfg = {
   label: string
   route: string
   vignette: number
+  theme: boolean
   keybinds: Record<string, unknown> | undefined
 }
 
@@ -73,7 +206,8 @@ const cfg = (options: Record<string, unknown> | undefined) => {
   return {
     label: pick(options?.label, "smoke"),
     route: pick(options?.route, "workspace-smoke"),
-    vignette: Math.max(0, num(options?.vignette, 0.35)),
+    vignette: Math.max(0, num(options?.vignette, 0)),
+    theme: options?.theme === true,
     keybinds: rec(options?.keybinds),
   }
 }
@@ -272,6 +406,7 @@ const Screen = (props: {
   route: Route
   keys: Keys
   meta: TuiPluginMeta
+  statePath: string
   params?: Record<string, unknown>
 }) => {
   const dim = useTerminalDimensions()
@@ -474,12 +609,7 @@ const Screen = (props: {
           ) : null}
 
           {value.tab === 1 ? (
-            <box flexDirection="column" gap={1}>
-              <text fg={skin.text}>Counter: {value.count}</text>
-              <text fg={skin.muted}>
-                {props.keys.print("up")} / {props.keys.print("down")} change value
-              </text>
-            </box>
+            <MissionsTab statePath={props.statePath} skin={skin} />
           ) : null}
 
           {value.tab === 2 ? (
@@ -751,11 +881,16 @@ const home = (api: TuiPluginApi, input: Cfg) => ({
   },
 })
 
-const block = (input: Cfg, order: number, title: string, text: string): TuiSlotPlugin => ({
-  order,
+const agentsBlock = (statePath: string): TuiSlotPlugin => ({
+  order: 600,
   slots: {
-    sidebar_content(ctx, value) {
+    sidebar_content(ctx) {
       const skin = look(ctx.theme.current)
+      const tracking = readTracking(statePath)
+      const missions = readMissions(statePath)
+      const active = missions?.missions.filter((m) => m.status !== "done" && m.status !== "completed") ?? []
+
+      if (!tracking && active.length === 0) return null
 
       return (
         <box
@@ -770,12 +905,28 @@ const block = (input: Cfg, order: number, title: string, text: string): TuiSlotP
           gap={1}
         >
           <text fg={skin.accent}>
-            <b>{title}</b>
+            <b>Agents</b>
           </text>
-          <text fg={skin.text}>{text}</text>
-          <text fg={skin.muted}>
-            {input.label} order {order} · session {value.session_id.slice(0, 8)}
-          </text>
+          {tracking ? (
+            <text fg={skin.muted}>
+              ↑{tracking.total_spawned} ✓{tracking.total_completed}
+              {tracking.total_failed > 0 ? (
+                <span style={{ fg: "#ef4444" }}> ✗{tracking.total_failed}</span>
+              ) : null}
+            </text>
+          ) : null}
+          {active.map((m) => (
+            <box flexDirection="column">
+              <text fg={skin.accent}>
+                {m.name || m.id.split(":")[1]?.slice(0, 10) ?? "mission"}
+              </text>
+              {m.agents
+                .filter((a) => a.status === "in_progress" || a.status === "running")
+                .map((a) => (
+                  <text fg={skin.muted}>  › {a.role}</text>
+                ))}
+            </box>
+          ))}
         </box>
       )
     },
@@ -784,9 +935,7 @@ const block = (input: Cfg, order: number, title: string, text: string): TuiSlotP
 
 const slot = (api: TuiPluginApi, input: Cfg): TuiSlotPlugin[] => [
   home(api, input),
-  block(input, 50, "Smoke above", "renders above internal sidebar blocks"),
-  block(input, 250, "Smoke between", "renders between internal sidebar blocks"),
-  block(input, 650, "Smoke below", "renders below internal sidebar blocks"),
+  agentsBlock(api.state.path.state),
 ]
 
 const reg = (api: TuiPluginApi, input: Cfg, keys: Keys) => {
@@ -899,23 +1048,33 @@ const reg = (api: TuiPluginApi, input: Cfg, keys: Keys) => {
 const tui: TuiPlugin = async (api, options, meta) => {
   if (options?.enabled === false) return
 
-  await api.theme.install("./smoke-theme.json")
-  api.theme.set("smoke-theme")
-
   const value = cfg(options ?? undefined)
+
+  if (value.theme) {
+    await api.theme.install("./smoke-theme.json")
+    api.theme.set("smoke-theme")
+  }
+
   const route = names(value)
   const keys = api.keybind.create(bind, value.keybinds)
-  const fx = new VignetteEffect(value.vignette)
-  const post = fx.apply.bind(fx)
-  api.renderer.addPostProcessFn(post)
-  api.lifecycle.onDispose(() => {
-    api.renderer.removePostProcessFn(post)
-  })
+
+  if (value.vignette > 0) {
+    const fx = new VignetteEffect(value.vignette)
+    const post = fx.apply.bind(fx)
+    api.renderer.addPostProcessFn(post)
+    api.lifecycle.onDispose(() => {
+      api.renderer.removePostProcessFn(post)
+    })
+  }
+
+  const statePath = api.state.path.state
 
   api.route.register([
     {
       name: route.screen,
-      render: ({ params }) => <Screen api={api} input={value} route={route} keys={keys} meta={meta} params={params} />,
+      render: ({ params }) => (
+        <Screen api={api} input={value} route={route} keys={keys} meta={meta} statePath={statePath} params={params} />
+      ),
     },
     {
       name: route.modal,
