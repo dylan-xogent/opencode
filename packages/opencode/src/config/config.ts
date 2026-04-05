@@ -76,7 +76,7 @@ export namespace Config {
 
   const managedDir = managedConfigDir()
 
-  const MANAGED_PLIST_DOMAIN = "ai.opencode.managed"
+  const MANAGED_PLIST_DOMAIN = "dev.awareness.managed"
 
   // Keys injected by macOS/MDM into the managed plist that are not Awareness config
   const PLIST_META = new Set([
@@ -849,7 +849,7 @@ export namespace Config {
     .object({
       $schema: z.string().optional().describe("JSON schema reference for configuration validation"),
       logLevel: Log.Level.optional().describe("Log level"),
-      server: Server.optional().describe("Server configuration for opencode serve and web commands"),
+      server: Server.optional().describe("Server configuration for awareness serve and web commands"),
       command: z
         .record(z.string(), Command)
         .optional()
@@ -1181,7 +1181,7 @@ export namespace Config {
             delete copy.theme
             delete copy.keybinds
             delete copy.tui
-            log.warn("tui keys in opencode config are deprecated; move them to tui.json", { path: source })
+            log.warn("tui keys in awareness config are deprecated; move them to tui.json", { path: source })
             return copy
           })()
 

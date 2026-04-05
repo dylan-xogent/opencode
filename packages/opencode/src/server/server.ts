@@ -167,7 +167,7 @@ export namespace Server {
             info: {
               title: "awareness",
               version: "0.0.3",
-              description: "opencode api",
+              description: "awareness api",
             },
             openapi: "3.1.1",
           },
@@ -253,7 +253,7 @@ export namespace Server {
         info: {
           title: "awareness",
           version: "1.0.0",
-          description: "opencode api",
+          description: "awareness api",
         },
         openapi: "3.1.1",
       },

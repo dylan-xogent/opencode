@@ -293,8 +293,10 @@ export const GlobalRoutes = lazy(() =>
         const result = await Installation.upgrade(method, target)
           .then(() => ({ success: true as const, version: target }))
           .catch((e) => {
-            const error = e instanceof Error ? `${e.message}\n${e.stack}` : String(e)
-            console.error("[upgrade] failed:", error)
+            const stderr = (e as any)?.stderr ?? ""
+            const message = e instanceof Error ? e.message : String(e)
+            const error = stderr ? `${message}: ${stderr}` : message
+            log.info("upgrade failed", { error, stack: e instanceof Error ? e.stack : undefined })
             return { success: false as const, error }
           })
         if (result.success) {

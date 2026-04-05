@@ -875,9 +875,14 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
     setTimeout(() => {
       const { spawn } = require("node:child_process")
-      spawn(process.execPath, process.argv.slice(1), {
+      // In a Bun compiled binary, argv[1] is the virtual bundle path (/$bunfs/...),
+      // not a real argument — passing it to the new process breaks the CLI.
+      // Filter it out and only keep args after the virtual entrypoint.
+      const args = process.argv.slice(1).filter((a) => !a.startsWith("/$bunfs/") && !a.startsWith("/bunfs/"))
+      spawn(process.execPath, args, {
         detached: true,
         stdio: "inherit",
+        cwd: process.cwd(),
       }).unref()
       exit()
     }, 1500)

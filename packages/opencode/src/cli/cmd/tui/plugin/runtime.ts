@@ -751,7 +751,7 @@ function defaultPluginOrigin(state: RuntimeState, spec: string): Config.PluginOr
   return {
     spec,
     scope: "local",
-    source: state.api.state.path.config || path.join(state.directory, ".opencode", "tui.json"),
+    source: state.api.state.path.config || path.join(state.directory, ".awareness", "tui.json"),
   }
 }
 

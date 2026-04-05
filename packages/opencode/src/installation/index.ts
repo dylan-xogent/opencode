@@ -5,6 +5,7 @@ import { makeRuntime } from "@/effect/run-service"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process"
 import path from "path"
+import os from "os"
 import z from "zod"
 import { BusEvent } from "@/bus/bus-event"
 import { Flag } from "../flag/flag"
@@ -168,11 +169,22 @@ export namespace Installation {
             const execName = process.platform === "win32" ? "awareness.exe" : "awareness"
             const newBinary = path.join(tmpExtract, execName)
             yield* run(["chmod", "+x", newBinary])
-            const cp = yield* run(["cp", newBinary, process.execPath])
-            if (cp.code !== 0) return yield* new UpgradeFailedError({ stderr: `Replace failed: ${cp.stderr}` })
+            // Strip macOS quarantine attribute so Gatekeeper doesn't block the binary
+            if (process.platform === "darwin") {
+              yield* run(["xattr", "-c", newBinary])
+            }
+            // Use a temp file on the same filesystem as the target, then mv to atomically
+            // replace via a new inode — avoids macOS killing the binary due to cached code pages
+            const sameDir = path.dirname(process.execPath)
+            const tmpTarget = path.join(sameDir, `.awareness-update-${Date.now()}`)
+            const cpStage = yield* run(["cp", newBinary, tmpTarget])
+            if (cpStage.code !== 0) return yield* new UpgradeFailedError({ stderr: `Stage failed: ${cpStage.stderr}` })
+            yield* run(["chmod", "+x", tmpTarget])
+            const mv = yield* run(["mv", tmpTarget, process.execPath])
+            if (mv.code !== 0) return yield* new UpgradeFailedError({ stderr: `Replace failed: ${mv.stderr}` })
 
             yield* run(["rm", "-rf", tmpArchive, tmpExtract])
-            return { code: cp.code, stdout: "", stderr: "" }
+            return { code: mv.code, stdout: "", stderr: "" }
           },
           Effect.scoped,
         )
