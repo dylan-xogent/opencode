@@ -144,6 +144,39 @@ export namespace Installation {
           return "awareness"
         })
 
+        const upgradeGitHub = Effect.fnUntraced(
+          function* (target: string) {
+            const ghRepo = Flag.AWARENESS_GITHUB_REPO || "dylan-xogent/opencode"
+            const platform = process.platform === "win32" ? "windows" : process.platform
+            const binaryPkg = `awareness-${platform}-${process.arch}`
+            const ext = process.platform === "linux" ? ".tar.gz" : ".zip"
+            const url = `https://github.com/${ghRepo}/releases/download/v${target}/${binaryPkg}${ext}`
+            const tmpArchive = path.join(os.tmpdir(), `awareness-update-${Date.now()}${ext}`)
+            const tmpExtract = path.join(os.tmpdir(), `awareness-extract-${Date.now()}`)
+
+            const dl = yield* run(["curl", "-fsSL", "-o", tmpArchive, url])
+            if (dl.code !== 0) return yield* new UpgradeFailedError({ stderr: `Download failed from ${url}: ${dl.stderr}` })
+
+            yield* run(["mkdir", "-p", tmpExtract])
+
+            const extract =
+              process.platform === "linux"
+                ? yield* run(["tar", "-xzf", tmpArchive, "-C", tmpExtract])
+                : yield* run(["unzip", "-o", tmpArchive, "-d", tmpExtract])
+            if (extract.code !== 0) return yield* new UpgradeFailedError({ stderr: `Extract failed: ${extract.stderr}` })
+
+            const execName = process.platform === "win32" ? "awareness.exe" : "awareness"
+            const newBinary = path.join(tmpExtract, execName)
+            yield* run(["chmod", "+x", newBinary])
+            const cp = yield* run(["cp", newBinary, process.execPath])
+            if (cp.code !== 0) return yield* new UpgradeFailedError({ stderr: `Replace failed: ${cp.stderr}` })
+
+            yield* run(["rm", "-rf", tmpArchive, tmpExtract])
+            return { code: cp.code, stdout: "", stderr: "" }
+          },
+          Effect.scoped,
+        )
+
         const upgradeCurl = Effect.fnUntraced(
           function* (target: string) {
             const response = yield* httpOk.execute(HttpClientRequest.get("https://awareness.dev/install"))
@@ -305,6 +338,8 @@ export namespace Installation {
             case "scoop":
               result = yield* run(["scoop", "install", `awareness@${target}`])
               break
+            case "unknown":
+              return yield* upgradeGitHub(target)
             default:
               return yield* new UpgradeFailedError({ stderr: `Unknown method: ${m}` })
           }
