@@ -866,13 +866,20 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       return
     }
 
-    await DialogAlert.show(
-      dialog,
-      "Update Complete",
-      `Successfully updated to Awareness v${result.data.version}. Please restart the application.`,
-    )
+    toast.show({
+      variant: "success",
+      message: `Updated to v${result.data.version}! Restarting...`,
+      duration: 2000,
+    })
 
-    exit()
+    setTimeout(() => {
+      const { spawn } = require("node:child_process")
+      spawn(process.execPath, process.argv.slice(1), {
+        detached: true,
+        stdio: "inherit",
+      }).unref()
+      exit()
+    }, 1500)
   })
 
   const plugin = createMemo(() => {
