@@ -105,6 +105,21 @@ export namespace Agent {
           const user = Permission.fromConfig(cfg.permission ?? {})
 
           const agents: Record<string, Info> = {
+            awareness: {
+              name: "awareness",
+              description: "Routes your request through the optimal pipeline for production-quality results.",
+              options: {},
+              permission: Permission.merge(
+                defaults,
+                Permission.fromConfig({
+                  question: "allow",
+                  plan_enter: "allow",
+                }),
+                user,
+              ),
+              mode: "primary",
+              native: true,
+            },
             compaction: {
               name: "compaction",
               mode: "primary",
