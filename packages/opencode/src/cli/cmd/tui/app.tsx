@@ -40,6 +40,7 @@ import { KeybindProvider, useKeybind } from "@tui/context/keybind"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
+import { Onboarding } from "@tui/routes/onboarding"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
@@ -435,11 +436,10 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
   createEffect(
     on(
-      () => sync.status === "complete" && sync.data.provider.length === 0,
+      () => sync.status !== "loading" && sync.data.provider.length === 0,
       (isEmpty, wasEmpty) => {
-        // only trigger when we transition into an empty-provider state
         if (!isEmpty || wasEmpty) return
-        dialog.replace(() => <DialogProviderList />)
+        route.navigate({ type: "onboarding" })
       },
     ),
   )
@@ -916,6 +916,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       </Show>
       <Show when={ready()}>
         <Switch>
+          <Match when={route.data.type === "onboarding"}>
+            <Onboarding />
+          </Match>
           <Match when={route.data.type === "home"}>
             <Home />
           </Match>

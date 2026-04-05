@@ -20,7 +20,11 @@ export type PluginRoute = {
   data?: Record<string, unknown>
 }
 
-export type Route = HomeRoute | SessionRoute | PluginRoute
+export type OnboardingRoute = {
+  type: "onboarding"
+}
+
+export type Route = HomeRoute | SessionRoute | PluginRoute | OnboardingRoute
 
 export const { use: useRoute, provider: RouteProvider } = createSimpleContext({
   name: "Route",
