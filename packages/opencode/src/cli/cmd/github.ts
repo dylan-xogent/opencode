@@ -137,7 +137,7 @@ type IssueQueryResponse = {
 
 const AGENT_USERNAME = "opencode-agent[bot]"
 const AGENT_REACTION = "eyes"
-const WORKFLOW_FILE = ".github/workflows/opencode.yml"
+const WORKFLOW_FILE = ".github/workflows/awareness.yml"
 
 // Event categories for routing
 // USER_EVENTS: triggered by user actions, have actor/issueId, support reactions/comments
@@ -378,7 +378,7 @@ export const GithubInstallCommand = cmd({
 
             await Filesystem.write(
               path.join(app.root, WORKFLOW_FILE),
-              `name: opencode
+              `name: awareness
 
 on:
   issue_comment:
@@ -387,12 +387,12 @@ on:
     types: [created]
 
 jobs:
-  opencode:
+  awareness:
     if: |
       contains(github.event.comment.body, ' /oc') ||
       startsWith(github.event.comment.body, '/oc') ||
-      contains(github.event.comment.body, ' /opencode') ||
-      startsWith(github.event.comment.body, '/opencode')
+      contains(github.event.comment.body, ' /awareness') ||
+      startsWith(github.event.comment.body, '/awareness')
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -405,8 +405,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run opencode
-        uses: anomalyco/opencode/github@latest${envStr}
+      - name: Run awareness
+        uses: dylan-xogent/opencode/github@latest${envStr}
         with:
           model: ${provider}/${model}`,
             )

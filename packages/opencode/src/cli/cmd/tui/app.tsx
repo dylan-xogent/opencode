@@ -436,9 +436,11 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
 
   createEffect(
     on(
-      () => sync.status !== "loading" && sync.data.provider.length === 0,
-      (isEmpty, wasEmpty) => {
-        if (!isEmpty || wasEmpty) return
+      () =>
+        sync.status !== "loading" &&
+        !sync.data.provider_next.connected.includes("openrouter"),
+      (noAuth, hadNoAuth) => {
+        if (!noAuth || hadNoAuth) return
         route.navigate({ type: "onboarding" })
       },
     ),

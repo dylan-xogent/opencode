@@ -393,7 +393,7 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
             providerID: value.model.providerID,
             modelID: value.model.modelID,
           })
-        else
+        else if (sync.data.provider_next.connected.includes(value.model.providerID))
           toast.show({
             variant: "warning",
             message: `Agent ${value.name}'s configured model ${value.model.providerID}/${value.model.modelID} is not valid`,

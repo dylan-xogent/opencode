@@ -505,7 +505,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "User-Agent": `opencode/${Installation.VERSION}`,
+                "User-Agent": `awareness/${Installation.VERSION}`,
               },
               body: JSON.stringify({ client_id: CLIENT_ID }),
             })
@@ -529,7 +529,7 @@ export async function CodexAuthPlugin(input: PluginInput): Promise<Hooks> {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
-                      "User-Agent": `opencode/${Installation.VERSION}`,
+                      "User-Agent": `awareness/${Installation.VERSION}`,
                     },
                     body: JSON.stringify({
                       device_auth_id: deviceData.device_auth_id,

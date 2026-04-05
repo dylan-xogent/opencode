@@ -138,8 +138,8 @@ export namespace Installation {
         )
 
         const getBrewFormula = Effect.fnUntraced(function* () {
-          const tapFormula = yield* text(["brew", "list", "--formula", "anomalyco/tap/awareness"])
-          if (tapFormula.includes("awareness")) return "anomalyco/tap/awareness"
+          const tapFormula = yield* text(["brew", "list", "--formula", "dylan-xogent/tap/awareness"])
+          if (tapFormula.includes("awareness")) return "dylan-xogent/tap/awareness"
           const coreFormula = yield* text(["brew", "list", "--formula", "awareness"])
           if (coreFormula.includes("awareness")) return "awareness"
           return "awareness"
@@ -326,12 +326,12 @@ export namespace Installation {
               const formula = yield* getBrewFormula()
               const env = { HOMEBREW_NO_AUTO_UPDATE: "1" }
               if (formula.includes("/")) {
-                const tap = yield* run(["brew", "tap", "anomalyco/tap"], { env })
+                const tap = yield* run(["brew", "tap", "dylan-xogent/tap"], { env })
                 if (tap.code !== 0) {
                   result = tap
                   break
                 }
-                const repo = yield* text(["brew", "--repo", "anomalyco/tap"])
+                const repo = yield* text(["brew", "--repo", "dylan-xogent/tap"])
                 const dir = repo.trim()
                 if (dir) {
                   const pull = yield* run(["git", "pull", "--ff-only"], { cwd: dir, env })
