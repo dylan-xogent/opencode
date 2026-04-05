@@ -292,7 +292,11 @@ export const GlobalRoutes = lazy(() =>
         const target = c.req.valid("json").target || (await Installation.latest(method))
         const result = await Installation.upgrade(method, target)
           .then(() => ({ success: true as const, version: target }))
-          .catch((e) => ({ success: false as const, error: e instanceof Error ? e.message : String(e) }))
+          .catch((e) => {
+            const error = e instanceof Error ? `${e.message}\n${e.stack}` : String(e)
+            console.error("[upgrade] failed:", error)
+            return { success: false as const, error }
+          })
         if (result.success) {
           GlobalBus.emit("event", {
             directory: "global",

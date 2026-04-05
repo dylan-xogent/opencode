@@ -857,7 +857,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     const result = await sdk.client.global.upgrade({ target: version })
 
     if (result.error || !result.data?.success) {
-      const msg = (result.data as any)?.error || String(result.error) || "Unknown error"
+      const msg = (result.data as any)?.error ?? (result.error as any)?.error ?? JSON.stringify(result.error)
       toast.show({
         variant: "error",
         title: "Update Failed",
