@@ -109,6 +109,9 @@ export namespace Agent {
               name: "awareness",
               description: "Routes your request through the optimal pipeline for production-quality results.",
               options: {},
+              model: Provider.parseModel("openrouter/google/gemini-3.1-flash-lite-preview"),
+              color: "#6366F1",
+              steps: 75,
               permission: Permission.merge(
                 defaults,
                 Permission.fromConfig({
