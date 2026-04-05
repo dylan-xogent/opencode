@@ -857,11 +857,12 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     const result = await sdk.client.global.upgrade({ target: version })
 
     if (result.error || !result.data?.success) {
+      const msg = (result.data as any)?.error || String(result.error) || "Unknown error"
       toast.show({
         variant: "error",
         title: "Update Failed",
-        message: "Update failed",
-        duration: 10000,
+        message: msg,
+        duration: 15000,
       })
       return
     }
